@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuthService } from "../services/auth.service";
+import { regUserSchema } from '@repo/common/types';
 
 const prisma = new PrismaClient();
-const authService = new AuthService(prisma);
 
 const cookieOptions = {
   httpOnly: true,
@@ -17,19 +17,26 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { name, email, phone, password } = req.body;
+    const data = regUserSchema.safeParse(req.body);
+    if (!data.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect Input Fields",
+      });
+    }  
 
-    if (!name || !email || !phone || !password) {
+    const { name, email, password } = data.data;
+
+    if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
         message: "Please enter the required fields",
       });
-    }
+    }  
 
-    const { user, token } = await authService.register({
+    const { user, token } = await AuthService.register({
       name,
       email,
-      phone,
       password,
     });
 
@@ -70,7 +77,7 @@ export const login = async (
       });
     }
 
-    const { user, token } = await authService.login({ email, password });
+    const { user, token } = await AuthService.login({ email, password });
 
     res.cookie("token", token, cookieOptions);
 

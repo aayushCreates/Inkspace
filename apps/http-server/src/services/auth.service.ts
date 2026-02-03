@@ -8,7 +8,6 @@ export class AuthService {
   static async register(data: {
     name: string;
     email: string;
-    phone: string;
     password: string;
   }): Promise<{ user: User; token: string }> {
     const hashedPassword = await getPasswordHash(data.password);
@@ -17,7 +16,6 @@ export class AuthService {
       data: {
         name: data.name,
         email: data.email,
-        phone: data.phone,
         password: hashedPassword,
       },
     });
